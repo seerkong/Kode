@@ -39,6 +39,12 @@ Kode 是一个强大的 AI 助手，运行在你的终端中。它能理解你�
 - 🔌 **工具系统** - 可扩展的架构，为不同任务提供专门的工具
 - 💾 **上下文管理** - 智能的上下文处理，保持对话连续性
 
+### OpenSpec 工作流集成
+- 内置 `/openspec:proposal`、`/openspec:apply`、`/openspec:archive`，与官方模板保持一致，确保不同工具的守护原则与步骤完全同步。
+- `/openspec:validate` 会调用本地 `openspec validate --strict`，并在对话中实时显示 CLI 输出与退出码。
+- 在终端输入 `/open` 后按 Tab，可即时补全全部 `/openspec:*` 命令，快速触发规范驱动流程。
+- 建议与 `@fission-ai/openspec` 一起安装，以启用校验能力并保持两个 CLI 的行为一致。
+
 ## 安装
 
 ```bash

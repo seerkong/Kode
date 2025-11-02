@@ -85,6 +85,12 @@ Our state-of-the-art completion system provides unparalleled coding assistance:
 - 💾 **Context Management** - Smart context handling to maintain conversation continuity
 - 📋 **AGENTS.md Integration** - Use `# documentation requests` to auto-generate and maintain project documentation
 
+### OpenSpec Workflow Integration
+- `/openspec:proposal`, `/openspec:apply`, `/openspec:archive` reuse the official OpenSpec guardrails and steps so plans stay in sync with other tools.
+- `/openspec:validate` shells out to `openspec validate --strict`, streaming CLI output and error codes directly in the session.
+- Tab completion suggests every `/openspec:*` shortcut as soon as you type `/open`, making it effortless to trigger the workflow from the terminal.
+- Install `@fission-ai/openspec` beside `@shareai-lab/kode` to enable validation and keep both CLIs aligned.
+
 ## Installation
 
 ```bash

@@ -20,6 +20,7 @@ import refreshCommands from './commands/refreshCommands'
 import releaseNotes from './commands/release-notes'
 import review from './commands/review'
 import terminalSetup from './commands/terminalSetup'
+import openSpecCommands from './commands/openspec'
 import { Tool, ToolUseContext } from './Tool'
 import resume from './commands/resume'
 import agents from './commands/agents'
@@ -99,6 +100,7 @@ const COMMANDS = memoize((): Command[] => [
   bug,
   review,
   terminalSetup,
+  ...openSpecCommands,
   ...(isAnthropicAuthEnabled() ? [logout, login()] : []),
   ...INTERNAL_ONLY_COMMANDS,
 ])
