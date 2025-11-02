@@ -13,6 +13,22 @@ const PROMPT_COMMANDS: Record<OpenSpecTemplateId, PromptCommandMetadata> = {
     description: 'Create an OpenSpec change proposal using canonical guardrails and steps',
     progressMessage: 'assembling OpenSpec proposal instructions',
   },
+  'design-architect': {
+    description: 'Iterate the OpenSpec architecture DSL before implementation',
+    progressMessage: 'preparing OpenSpec design-architect guidance',
+  },
+  'init-architect': {
+    description: 'Seed the OpenSpec architecture DSL from a requirement document',
+    progressMessage: 'preparing OpenSpec init-architect guidance',
+  },
+  'refine-architect': {
+    description: 'Refine the OpenSpec architecture DSL with a targeted prompt',
+    progressMessage: 'preparing OpenSpec refine-architect guidance',
+  },
+  'sync-code-to-architect': {
+    description: 'Sync the OpenSpec architecture DSL with code-level findings',
+    progressMessage: 'preparing OpenSpec sync-code-to-architect guidance',
+  },
   apply: {
     description: 'Follow OpenSpec apply workflow and checklist',
     progressMessage: 'preparing OpenSpec apply guidance',
@@ -46,6 +62,10 @@ function createPromptCommand(id: OpenSpecTemplateId): Command {
 }
 
 export const openSpecProposalCommand = createPromptCommand('proposal')
+export const openSpecTechDesignCommand = createPromptCommand('design-architect')
+export const openSpecInitArchitectCommand = createPromptCommand('init-architect')
+export const openSpecRefineArchitectCommand = createPromptCommand('refine-architect')
+export const openSpecSyncCodeToArchitectCommand = createPromptCommand('sync-code-to-architect')
 export const openSpecApplyCommand = createPromptCommand('apply')
 export const openSpecArchiveCommand = createPromptCommand('archive')
 
@@ -104,6 +124,10 @@ export const openSpecValidateCommand: Command = {
 
 export const openSpecCommands: Command[] = [
   openSpecProposalCommand,
+  openSpecTechDesignCommand,
+  openSpecInitArchitectCommand,
+  openSpecRefineArchitectCommand,
+  openSpecSyncCodeToArchitectCommand,
   openSpecApplyCommand,
   openSpecArchiveCommand,
   openSpecValidateCommand,

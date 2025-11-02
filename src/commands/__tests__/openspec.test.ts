@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, afterEach } from 'bun:test'
 import {
   openSpecProposalCommand,
+  openSpecTechDesignCommand,
+  openSpecInitArchitectCommand,
+  openSpecRefineArchitectCommand,
+  openSpecSyncCodeToArchitectCommand,
   openSpecValidateCommand,
 } from '@commands/openspec'
 import {
@@ -28,15 +32,88 @@ describe('OpenSpec prompt commands', () => {
     expect(textBlock.text).toContain(getOpenSpecTemplate('proposal'))
     expect(textBlock.text).toContain('add multi-tenant settings')
   })
+
+  it('embeds canonical design-architect instructions and change id', async () => {
+    const prompt = await openSpecTechDesignCommand.getPromptForCommand('update-search')
+
+    expect(prompt).toHaveLength(1)
+    const message = prompt[0]
+    expect(message.role).toBe('user')
+    const blocks = message.content
+    expect(Array.isArray(blocks)).toBe(true)
+    const textBlock = (blocks as any[])[0]
+    expect(textBlock.type).toBe('text')
+    expect(textBlock.text).toContain(getOpenSpecTemplate('design-architect'))
+    expect(textBlock.text).toContain('update-search')
+  })
+
+  it('embeds canonical init-architect instructions and doc path', async () => {
+    const prompt = await openSpecInitArchitectCommand.getPromptForCommand('docs/requirements.md')
+
+    expect(prompt).toHaveLength(1)
+    const message = prompt[0]
+    expect(message.role).toBe('user')
+    const blocks = message.content
+    expect(Array.isArray(blocks)).toBe(true)
+    const textBlock = (blocks as any[])[0]
+    expect(textBlock.type).toBe('text')
+    expect(textBlock.text).toContain(getOpenSpecTemplate('init-architect'))
+    expect(textBlock.text).toContain('docs/requirements.md')
+  })
+
+  it('embeds canonical refine-architect instructions and prompt text', async () => {
+    const prompt = await openSpecRefineArchitectCommand.getPromptForCommand('--change enhance-reporting --prompt "完善审批流程"')
+
+    expect(prompt).toHaveLength(1)
+    const message = prompt[0]
+    expect(message.role).toBe('user')
+    const blocks = message.content
+    expect(Array.isArray(blocks)).toBe(true)
+    const textBlock = (blocks as any[])[0]
+    expect(textBlock.type).toBe('text')
+    expect(textBlock.text).toContain(getOpenSpecTemplate('refine-architect'))
+    expect(textBlock.text).toContain('--change enhance-reporting --prompt "完善审批流程"')
+  })
+
+  it('embeds canonical sync-code-to-architect instructions and arguments', async () => {
+    const prompt = await openSpecSyncCodeToArchitectCommand.getPromptForCommand('--path src --change add-audit-log')
+
+    expect(prompt).toHaveLength(1)
+    const message = prompt[0]
+    expect(message.role).toBe('user')
+    const blocks = message.content
+    expect(Array.isArray(blocks)).toBe(true)
+    const textBlock = (blocks as any[])[0]
+    expect(textBlock.type).toBe('text')
+    expect(textBlock.text).toContain(getOpenSpecTemplate('sync-code-to-architect'))
+    expect(textBlock.text).toContain('--path src --change add-audit-log')
+  })
 })
 
 describe('OpenSpec template sync', () => {
   it('stays aligned with the canonical OpenSpec templates', async () => {
-    const url = new URL(
-      '../../../../OpenSpec/src/core/templates/slash-command-templates.ts',
-      import.meta.url,
-    )
-    const canonicalModule = await import(url.href)
+    const candidates = ['OpenSpec', 'OpenSpecDev']
+    let canonicalModule: any = null
+
+    for (const candidate of candidates) {
+      const url = new URL(
+        `../../../../${candidate}/src/core/templates/slash-command-templates.ts`,
+        import.meta.url,
+      )
+      try {
+        canonicalModule = await import(url.href)
+        break
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ERR_MODULE_NOT_FOUND') {
+          throw error
+        }
+      }
+    }
+
+    if (!canonicalModule) {
+      throw new Error('Unable to locate canonical OpenSpec templates for comparison.')
+    }
+
     expect(OPEN_SPEC_TEMPLATES).toEqual(canonicalModule.slashCommandBodies)
   })
 })

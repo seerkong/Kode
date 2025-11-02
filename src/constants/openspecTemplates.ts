@@ -1,4 +1,11 @@
-export type OpenSpecTemplateId = 'proposal' | 'apply' | 'archive'
+export type OpenSpecTemplateId =
+  | 'proposal'
+  | 'design-architect'
+  | 'init-architect'
+  | 'refine-architect'
+  | 'sync-code-to-architect'
+  | 'apply'
+  | 'archive'
 
 const baseGuardrails = `**Guardrails**
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.
@@ -32,6 +39,59 @@ Track these steps as TODOs and complete them one by one.
 const applyReferences = `**Reference**
 - Use \`openspec show <id> --json --deltas-only\` if you need additional context from the proposal while implementing.`
 
+const techDesignGuardrails = `${baseGuardrails}
+- Treat the architecture DSL under \`openspec/architect\` as the canonical snapshot—only update nodes that this change actually touches.
+- Document every structural adjustment in the change-specific mutation log before editing the shared snapshot so reviewers can trace intent.
+- Reuse existing modules/entities/procedures when possible; justify new nodes by linking them back to the spec deltas.`
+
+const techDesignSteps = `**Steps**
+1. Identify the active change: read the spec deltas in \`openspec/changes/<id>/specs/\` and confirm outstanding TODOs or open questions.
+2. Ground yourself in the DSL: 阅读 \`openspec/architect/prompts/DSL结构定义.md\`、\`openspec/architect/prompts/DSL输出规范.md\` 获取字段说明与输出约束，并参考 \`openspec/architect/prompts/后端设计示例.md\` 或 \`openspec/architect/prompts/前端设计示例.md\` 确认写作风格。
+3. Inspect the current snapshot in \`openspec/architect/\`: load the XML file for each affected node (paths mirror their IDs, for example \`openspec/architect/Common.module/Entity/B.entity\`).
+4. Update the change log at \`openspec/changes/<id>/architect/mutations.xml\`: add one \`<MutationPartial>\` per create/update/delete, using the element type as the tag (e.g., \`<Module ...>\`) with a \`mutationType="Create|Update|Delete"\` attribute and a JSON payload inside \`<![CDATA[ ... ]]>\`. Capture version bumps and high-level reasoning inline.
+5. Refresh the canonical XML snapshots in \`openspec/architect/\`: for every impacted node, rewrite the file using the exact field set described in \`openspec/architect/prompts/DSL结构定义.md\`（记得为长文本包裹 CDATA）。Create any missing intermediate folders so the final path matches the node ID.
+6. Confirm referential integrity: verify IDs referenced in dependencies still exist, note open questions or follow-ups in the mutation log, and flag any spec/architecture drift that needs clarification.`
+
+const techDesignReferences = `**Reference**
+- Follow the attribute and payload structure recorded in \`openspec/architect/prompts/DSL输出规范.md\` when writing \`<MutationPartial>\` entries.
+- When emitting XML snapshots for modules/entities/procedures/etc., map each field described in \`openspec/architect/prompts/DSL结构定义.md\` to an XML element (use CDATA for markdown, TypeScript, Mermaid, or pseudocode blocks).
+- Keep the shared snapshot and per-change mutation log in sync so other tooling can parse the DSL accurately.`
+
+const architectWorkflowGuardrails = techDesignGuardrails
+
+const initArchitectSteps = `**Steps**
+1. 从 <ChangeRequest> 中获取需求文档路径；如果缺失，则先向用户索取 Markdown/文本文件后再继续。
+2. 在项目根目录运行 \`openspec init-architect <docPath>\`，让 CLI 生成 Module 与 ModuleRelationDiagram 的 MutationPartial。
+3. 审阅命令输出以及 \`openspec/architect/logs/\` 下生成的备份，弄清楚新增了哪些模块与关联。
+4. 应用这些 MutationPartial：刷新 \`openspec/architect/state.json\`，重写对应的 XML 快照，并在存在变更时更新 \`openspec/changes/<change-id>/architect/mutations.xml\`。
+5. 在回复中标记尚未解决的疑问（模块职责、依赖边界等）及后续行动。`
+
+const initArchitectReferences = `**Reference**
+- 使用 \`openspec/architect/prompts/DSL结构定义.md\` 与 \`DSL输出规范.md\` 校验 CLI 输出的字段与格式。
+- 需求文档若包含图示或流程，可额外在 MutationPartial 的说明中捕捉，方便后续 refine。`
+
+const refineArchitectSteps = `**Steps**
+1. 解析 <ChangeRequest> 获取目标（如模块/实体范围、变更原因、change-id）；若范围模糊先向用户澄清。
+2. 在执行前先查看现有快照：读取 \`openspec/architect/state.json\` 及相关 XML 节点，确认当前结构。
+3. 运行 \`openspec refine-architect --prompt "<text>"\`，并追加 <ChangeRequest> 中提到的其他参数（如 \`--change\`），生成 MutationPartial 建议。
+4. 审核并应用这些建议：更新变更目录下的 \`architect/mutations.xml\`，同步 XML 快照，确保 version 递增与依赖指向正确。
+5. 在总结中列出已处理的调整与仍需跟进的 TODO，必要时附带下一步建议。`
+
+const refineArchitectReferences = `**Reference**
+- 随时对照 \`openspec/architect/prompts/DSL结构定义.md\`、\`DSL输出规范.md\` 检查字段完整性与 CDATA 包裹。
+- CLI 会在 \`openspec/architect/logs/\` 写入原始响应；若终端输出被截断，可查阅最新文件。`
+
+const syncArchitectSteps = `**Steps**
+1. 从 <ChangeRequest> 收集需要扫描的代码目录（默认尝试 \`src\`、\`app\`、\`api\`）以及补充说明或 change-id。
+2. 根据收集到的参数运行 \`openspec sync-code-to-architect\`（可附带 \`--path\`、\`--change\`、\`--prompt\` 等），让 CLI 基于代码摘要生成 MutationPartial。
+3. 通过 \`openspec/architect/state.json\` 判断是否为首次同步；若 CLI 仅输出宏观模块，可在后续根据需要再次运行并提供更聚焦的提示。
+4. 像其他流程一样应用变更：刷新 \`openspec/changes/<change-id>/architect/mutations.xml\`、更新 XML 快照，并保持 state.json 同步。
+5. 在结果中记录发现的缺口（遗失模块、过时流程等）与建议的后续检查。`
+
+const syncArchitectReferences = `**Reference**
+- 结合 CLI 生成的摘要（存于 \`openspec/architect/logs/\`）定位代码热点，可配合 \`rg\` 或语言感知工具深入确认实现细节。
+- 如果同步过程中出现权限或路径问题，优先修正命令参数再重试。`
+
 const archiveSteps = `**Steps**
 1. Determine the change ID to archive:
    - If this prompt already includes a specific change ID (for example inside a \`<ChangeId>\` block populated by slash-command arguments), use that value after trimming whitespace.
@@ -49,6 +109,10 @@ const archiveReferences = `**Reference**
 
 export const OPEN_SPEC_TEMPLATES: Record<OpenSpecTemplateId, string> = {
   proposal: [proposalGuardrails, proposalSteps, proposalReferences].join('\n\n'),
+  'design-architect': [techDesignGuardrails, techDesignSteps, techDesignReferences].join('\n\n'),
+  'init-architect': [architectWorkflowGuardrails, initArchitectSteps, initArchitectReferences].join('\n\n'),
+  'refine-architect': [architectWorkflowGuardrails, refineArchitectSteps, refineArchitectReferences].join('\n\n'),
+  'sync-code-to-architect': [architectWorkflowGuardrails, syncArchitectSteps, syncArchitectReferences].join('\n\n'),
   apply: [baseGuardrails, applySteps, applyReferences].join('\n\n'),
   archive: [baseGuardrails, archiveSteps, archiveReferences].join('\n\n'),
 }
