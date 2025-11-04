@@ -46,7 +46,7 @@ const techDesignGuardrails = `${baseGuardrails}
 
 const techDesignSteps = `**Steps**
 1. Identify the active change: read the spec deltas in \`openspec/changes/<id>/specs/\` and confirm outstanding TODOs or open questions.
-2. Ground yourself in the DSL: 阅读 \`openspec/architect/prompts/DSL结构定义.md\`、\`openspec/architect/prompts/DSL输出规范.md\` 获取字段说明与输出约束，并参考 \`openspec/architect/prompts/后端设计示例.md\` 或 \`openspec/architect/prompts/前端设计示例.md\` 确认写作风格。
+2. Ground yourself in the DSL: 阅读 \`openspec/architect/prompts/DSL结构定义.md\`、\`openspec/architect/prompts/DSL输出规范.md\` 获取字段说明与输出约束，并参考 \`openspec/architect/prompts/DSL设计示例.md\` 确认写作风格。
 3. Inspect the current snapshot in \`openspec/architect/\`: load the XML file for each affected node (paths mirror their IDs, for example \`openspec/architect/Common.module/Entity/B.entity\`).
 4. Update the change log at \`openspec/changes/<id>/architect/mutations.xml\`: add one \`<MutationPartial>\` per create/update/delete, using the element type as the tag (e.g., \`<Module ...>\`) with a \`mutationType="Create|Update|Delete"\` attribute and a JSON payload inside \`<![CDATA[ ... ]]>\`. Capture version bumps and high-level reasoning inline.
 5. Refresh the canonical XML snapshots in \`openspec/architect/\`: for every impacted node, rewrite the file using the exact field set described in \`openspec/architect/prompts/DSL结构定义.md\`（记得为长文本包裹 CDATA）。Create any missing intermediate folders so the final path matches the node ID.
